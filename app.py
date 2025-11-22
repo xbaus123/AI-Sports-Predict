@@ -159,5 +159,14 @@ def player_stats(player_name):
 def home():
     return render_template("index.html")
 
+@app.route('/api/players')
+def get_players():
+    if nba_data is None:
+        return jsonify([])
+    try:
+        players_list = sorted(nba_data['Player'].dropna().unique().tolist())
+        return jsonify(players_list)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
     app.run(debug=True)

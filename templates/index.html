@@ -232,7 +232,7 @@
             <form id="predictionForm">
                 <div class="form-group">
                     <label for="playerName">Player Name</label>
-                    <input type="text" id="playerName" placeholder="e.g., LeBron James" required>
+                    <input type="text" id="playerName" placeholder="e.g., LeBron James" required list="player-list">
                     <div class="helper-text">Enter the player's full name</div>
                 </div>
 
@@ -283,7 +283,7 @@
             <form id="statsForm">
                 <div class="form-group">
                     <label for="statsPlayerName">Player Name</label>
-                    <input type="text" id="statsPlayerName" placeholder="e.g., Stephen Curry" required>
+                    <input type="text" id="statsPlayerName" placeholder="e.g., Stephen Curry" required list="player-list">
                     <div class="helper-text">Enter the player's full name to see their most recent game</div>
                 </div>
 
@@ -324,6 +324,30 @@
             </div>
         </div>
     </div>
+    </div> <datalist id="player-list"></datalist>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', async () => {
+                try {
+                    const response = await fetch('/api/players');
+                    if (response.ok) {
+                        const players = await response.json();
+                        const dataList = document.getElementById('player-list');
+                        const fragment = document.createDocumentFragment();
+                        
+                        players.forEach(player => {
+                            const option = document.createElement('option');
+                            option.value = player;
+                            fragment.appendChild(option);
+                        });
+                        
+                        dataList.appendChild(fragment);
+                    }
+                } catch (error) {
+                    console.error('Error loading player list:', error);
+                }
+            });
+        </script>
 
     <script>
         // Prediction Form Handler
