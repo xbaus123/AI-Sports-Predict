@@ -1,10 +1,9 @@
 document.addEventListener('DOMContentLoaded', async () => {
     
-    let playerNames = []; // Store names for quick lookup
+    let playerNames = []; 
 
     // --- 1. Load Player Data & Team Data ---
     try {
-        // Load Players List
         const playerRes = await fetch('/api/players');
         if (playerRes.ok) {
             playerNames = await playerRes.json();
@@ -16,11 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 option.value = player;
                 fragment.appendChild(option);
             });
-            
             dataList.appendChild(fragment);
         }
 
-        // Load Teams for Dropdown
         const teamRes = await fetch('/api/teams');
         if (teamRes.ok) {
             const teams = await teamRes.json();
@@ -44,12 +41,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const teamDisplay = document.getElementById('playerTeamDisplay');
 
     if (playerNameInput) {
-        // Use 'input' event to detect changes immediately
         playerNameInput.addEventListener('input', async () => {
             const name = playerNameInput.value;
-            
-            // Only search if it matches a valid player in our list
-            // This prevents searching for "L" or "LeB" before you finish typing
             if (!playerNames.includes(name)) {
                 teamDisplay.textContent = "Select a player...";
                 teamDisplay.style.color = "#555";
@@ -96,10 +89,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const predictionResult = document.getElementById('predictionResult');
             const predictionError = document.getElementById('predictionError');
             const predictionLoading = document.getElementById('predictionLoading');
+            const factorsList = document.getElementById('factorsList');
 
             predictionResult.classList.remove('show', 'over', 'under');
             predictionError.classList.remove('show');
             predictionLoading.classList.add('show');
+            factorsList.innerHTML = ''; // Clear previous factors
 
             try {
                 const response = await fetch('/api/predict', {
@@ -120,9 +115,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const pick = data.pick.toUpperCase();
                     document.getElementById('pickText').textContent = `Recommendation: ${pick}`;
                     document.getElementById('projectedPoints').textContent = data.projected_points;
-                    document.getElementById('spreadValue').textContent = data.spread;
+                    
+                    // Display Confidence
+                    const confVal = document.getElementById('confidenceValue');
+                    confVal.textContent = data.confidence;
+                    
                     document.getElementById('edgeValue').textContent = `${data.edge} pts`;
                     document.getElementById('confidenceNote').textContent = data.confidence_note;
+
+                    // Populate Factors
+                    if (data.top_factors && data.top_factors.length > 0) {
+                        data.top_factors.forEach(factor => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `• <strong>${factor.name}</strong> (${(factor.score * 100).toFixed(1)}% influence)`;
+                            li.style.marginBottom = "4px";
+                            factorsList.appendChild(li);
+                        });
+                    }
+
                     predictionResult.classList.add('show', pick.toLowerCase());
                 } else {
                     predictionError.textContent = data.error || 'An error occurred';
